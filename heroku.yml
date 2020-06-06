@@ -1,8 +1,7 @@
 build:
   docker:
     web: Dockerfile
-run:
-  web: ADDR=0.0.0.0 /bin/app
 release:
   image: web
-  command: /bin/app migrate
+  command:
+    - /bin/app migrate
