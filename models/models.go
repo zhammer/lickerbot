@@ -13,7 +13,9 @@ var DB *pop.Connection
 
 func init() {
 	var err error
-	env := envy.Get("GO_ENV", "development")
+	originalEnv := envy.Get("GO_ENV", "development")
+	// to allow override database when running `buffalo dev`
+	env := envy.Get("GO_ENV_OVERRIDE", originalEnv)
 	DB, err = pop.Connect(env)
 	if err != nil {
 		log.Fatal(err)

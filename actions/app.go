@@ -1,6 +1,8 @@
 package actions
 
 import (
+	"math"
+
 	"github.com/gobuffalo/buffalo"
 	"github.com/gobuffalo/envy"
 	forcessl "github.com/gobuffalo/mw-forcessl"
@@ -59,7 +61,13 @@ func App() *buffalo.App {
 		// Setup and use translations:
 		app.Use(translations())
 
+		app.Use(templateGlobals)
+
 		app.GET("/", HomeHandler)
+
+		app.GET("/@{twitterHandle}", BootlickerHandler)
+
+		app.POST("/{bootlickerID}/donations", DonationPledgeHandler)
 
 		app.ServeFiles("/", assetsBox) // serve files from the public directory
 	}
@@ -89,4 +97,40 @@ func forceSSL() buffalo.MiddlewareFunc {
 		SSLRedirect:     ENV == "production",
 		SSLProxyHeaders: map[string]string{"X-Forwarded-Proto": "https"},
 	})
+}
+
+type link struct {
+	Name string
+	URL  string
+}
+
+// templateGlobals adds some global values to all templates.
+func templateGlobals(next buffalo.Handler) buffalo.Handler {
+	return func(c buffalo.Context) error {
+		c.Set("donationLinks", []link{
+			{
+				Name: "Black Trans Protestors Emergency Fund",
+				URL:  "https://www.instagram.com/p/CA8GE-HDbxa/",
+			},
+			{
+				Name: "Justice for Breonna Taylor",
+				URL:  "https://www.gofundme.com/f/9v4q2-justice-for-breonna-taylor",
+			},
+			{
+				Name: "The Bail Project",
+				URL:  "https://secure.givelively.org/donate/the-bail-project",
+			},
+			{
+				Name: "More",
+				URL:  "https://blacklivesmatters.carrd.co/#donate",
+			},
+		})
+		c.Set("truncateFloat", truncateFloat)
+		return next(c)
+	}
+}
+
+// 10.25897237 -> 10.26
+func truncateFloat(input float64) float64 {
+	return math.Ceil(input*100) / 100
 }

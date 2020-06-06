@@ -1,0 +1,103 @@
+<% contentFor("title") {%>
+    <title>Lickerbot - <%= bootlicker.TwitterHandle %></title>
+<% } %>
+
+<header>
+    <div class="header">
+    <h1>@<%= bootlicker.TwitterHandle %></h1>
+    </div>
+</header>
+
+<main>
+    <div class="column">
+    <div>
+        <a href="https://twitter.com/<%= bootlicker.TwitterHandle %>">@<%= bootlicker.TwitterHandle %></a>
+        has licked the boot <%= len(bootlicker.Licks) %> time<%= if (len(bootlicker.Licks) > 1) {%>s<% } %>.
+        <%= if (totalPledged > 0) { %>
+            In response, people have donated <span class="money">$<%= totalPledged %></span> to organizations fighting
+            police brutality. That's <span class="money">$<%= truncateFloat(pledgedPerLick) %></span> per lick!
+            Will you <a href="#donate">join them</a>?
+        <% } else { %>
+            Will you <a href="#donate">pledge to donate $5 per lick</a>?
+        <% } %>
+    </div>
+    <div>
+        <ul class="licks">
+            <%= for (index, lick) in bootlicker.Licks { %>
+                <li id="<%= lick.TweetID %>">
+                    <blockquote class="twitter-tweet">
+                        <p lang="en" dir="ltr"><%= lick.TweetText %></p><a href="https://twitter.com/<%= bootlicker.TwitterHandle %>/status/<%= lick.TweetID %>">original tweet</a>
+                    </blockquote>
+                </li>
+                <%= if (index + 1 != len(bootlicker.Licks)) { %>
+                    <hr >
+                <% } %>
+            <% } %>
+        </ul>
+    </div>
+    <form class="donate" id="donate" onsubmit="return onSubmit()">
+        <div class="thank-you">
+            Thank you for pledging to donate $<span id="total-pledged"></span>. For a more complete list of organizations, go to <a href="https://blacklivesmatters.carrd.co/#donate">blacklivesmatters.carrd.co</a>.
+        </div>
+        <%
+            let defaultAmount = 5;
+            let amounts = [1, 5, 20, 50];
+        %>
+        <p>
+        I pledge to donate
+        <select name="amount" id="amount" onchange="onAmountSelect()">
+            <%= for (_, amount) in amounts { %>
+                <option
+                    value="<%= amount %>"
+                    <%= if (amount == defaultAmount) {%>selected<% } %>
+                    >$<%= amount %></option>
+            <% }%>
+        </select>
+        per bootlick (<%= len(bootlicker.Licks) %> total) to an organization fighting against police brutality.
+        </p>
+        <ul class="resources">
+            <%= for (_, link) in donationLinks { %>
+            <li><a target="_blank" href="<%= link.URL %>"><%= link.Name %></a></li>
+            <% } %>
+        </ul>
+        <button type="submit">Pledge to donate <span class="money">$<span id="total-to-donate"><%= defaultAmount * len(bootlicker.Licks) %><span></span></button>
+    </form>
+    <script type="text/javascript">
+        // static variables from template
+        let numberOfLicks = <%= len(bootlicker.Licks) %>;
+        let bootlickerID = "<%= bootlicker.ID %>";
+
+        // html elements
+        let selectElement = document.querySelector("select#amount");
+        let totalToDonateElement = document.querySelector("#total-to-donate");
+        let donationFormElement = document.querySelector("form#donate");
+        let submitButtonElement = donationFormElement.querySelector("button");
+        let thankYouElement = donationFormElement.querySelector(".thank-you");
+        let totalPledgedElement = document.querySelector("#total-pledged");
+
+        // handlers
+        function onAmountSelect() {
+            let amount = selectElement.value;
+            totalToDonateElement.textContent = amount * numberOfLicks;
+        }
+        function onSubmit() {
+            // fire this off asynchronously, we'll show a thank you no matter what.
+            // it's just a pledge.
+            let totalToDonate = parseInt(totalToDonateElement.textContent);
+            fetch(`/${bootlickerID}/donations`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({amount: totalToDonate})
+            })
+
+            // update page
+            submitButtonElement.disabled = true;
+            thankYouElement.classList.add("on");
+            totalPledgedElement.textContent = totalToDonate;
+            return false;
+        }
+    </script>
+    </div>
+</main>

@@ -1,4 +1,210 @@
-@import "~bootstrap/scss/bootstrap.scss";
-@import "~@fortawesome/fontawesome-free/css/all.min.css";
+$background: #071822;
+$cta: #11b5e4;
+$light: #ecfafe;
+$contrast: #fed18c;
+$mobileBreakpoint: 35em;
 
-@import "buffalo";
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background: $background;
+
+  box-sizing: border-box;
+
+  margin: 0;
+  padding: 0;
+
+  letter-spacing: 1px;
+  color: $light;
+  font-family: "Open Sans", sans-serif;
+}
+
+.header {
+}
+
+.page {
+  /*
+        have to bypass the sass compiler, which throws
+        "SassError: Internal Error: Incompatible units: 'vw' and 'px'".
+        it seems that this is fixed in dart sass: https://sass-lang.com/documentation/syntax/special-functions#min-and-max.
+    */
+  max-width: #{"min(500px, 75vw)"};
+  margin: 0 auto;
+  padding-bottom: 1em;
+}
+
+a {
+  color: $cta;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5 {
+  letter-spacing: 4px;
+  text-align: center;
+  font-family: "Roboto", sans-serif;
+}
+
+h1 {
+  @media (max-width: $mobileBreakpoint) {
+    font-size: 1.5em;
+  }
+}
+
+nav {
+  > ul {
+    margin: 0;
+    padding: 2em 1em 1em 1em;
+    list-style-type: none;
+    display: flex;
+    justify-content: center;
+
+    > li {
+      > a {
+        display: flex;
+        align-items: center;
+        padding: 0.5em 1.5em;
+        background: black;
+        color: white;
+        text-decoration: none;
+
+        > .logo {
+          margin-right: 0.5em;
+          height: 1em;
+        }
+      }
+    }
+  }
+}
+
+.licks {
+  list-style-type: none;
+  padding: 0;
+}
+
+.column {
+  display: flex;
+  flex-direction: column;
+}
+
+hr {
+  width: 80%;
+  border: 0;
+  height: 1px;
+  background-image: linear-gradient(
+    to right,
+    rgba(0, 0, 0, 0),
+    rgba($light, 0.8),
+    rgba(0, 0, 0, 0)
+  );
+}
+
+.bootlicker-figure {
+  border: solid 2px;
+  padding: 1em;
+  border-radius: 1em;
+  border-color: $contrast;
+
+  h2 {
+    color: $contrast;
+  }
+  p {
+    margin-bottom: 0;
+  }
+  > img {
+    max-height: 90px;
+  }
+
+  @media (max-width: $mobileBreakpoint) {
+    margin: 1em 0;
+  }
+}
+
+.money {
+  color: $contrast;
+}
+
+select {
+  font: inherit;
+  background: $background;
+  color: $contrast;
+  border: solid 1px $light;
+  border-radius: 2px;
+  cursor: pointer;
+}
+
+.donate {
+  position: relative;
+  border: solid 2px;
+  padding: 1.5em;
+  border-radius: 1em;
+  border-color: $light;
+  overflow: hidden;
+
+  @media (min-width: $mobileBreakpoint) {
+    font-size: 1.25rem;
+    margin-top: 1em;
+  }
+
+  p {
+    margin-top: 0;
+  }
+  .resources {
+    margin: 0;
+  }
+  button {
+    margin: 1em auto;
+    @media (max-width: $mobileBreakpoint) {
+      margin-bottom: 0;
+    }
+
+    display: block;
+  }
+  .thank-you {
+    background: $light;
+    color: $background;
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding: 2em;
+
+    font-size: 1.25rem;
+    @media (min-width: $mobileBreakpoint) {
+      font-size: 1.5rem;
+    }
+
+    a {
+      overflow-wrap: break-word;
+    }
+
+    transition: opacity 1s ease-in;
+    opacity: 0;
+    visibility: hidden;
+
+    &.on {
+      opacity: 1;
+      visibility: visible;
+    }
+  }
+}
+
+button {
+  font: inherit;
+  padding: 0.75em;
+  border-radius: 0.25em;
+  background: $background;
+  color: inherit;
+  border: solid 2px $contrast;
+  cursor: pointer;
+  transition: background 0.05s linear;
+
+  &:hover {
+    background: rgba($light, 0.1);
+  }
+}

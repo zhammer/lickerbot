@@ -1,64 +1,47 @@
 <header>
-  <div class="container">
-    <div class="row">
-      <div class="col-md-1 col-sm-2 col-xs-2 logo">
-        <a href="<%= rootPath() %>"><img src="<%= rootPath() %>assets/images/logo.svg" alt=""></a>
-      </div>
-      <div class="col-md-9 col-sm-9 col-xs-10 titles">
-        <h1><%= t("welcome_greeting") %></h1>
-        <h2>
-          <a href="https://github.com/gobuffalo/buffalo"><i class="fab fa-github" aria-hidden="true"></i> https://github.com/gobuffalo/buffalo</a>
-        </h2>
-        <h2 class="documentation">
-          <a href="http://gobuffalo.io/"><i class="fa fa-book" aria-hidden="true"></i> Documentation</a>
-        </h2>
-      </div>
+    <div class="header">
+        <h1>About</h1>
     </div>
-  </div>
-
 </header>
 
-<div class="row">
-  <div class="col-md-12">
-    <div class="subtitle">
-      <div class="container">
-        <h3>Defined Routes</h3>
-      </div>
+<main>
+    <div class="column">
+        <figure class="bootlicker-figure">
+            <img alt="lickerbot logo" src="/assets/images/logo.svg">
+            <figcaption>
+                <h2>boot·lick·er</h2>
+                <p>
+                    Someone who kisses up to their oppressors' [see: <a href="https://www.nytimes.com/2020/06/05/opinion/police-riots.html">cops</a>'] thoughts and feelings rather than being aware of their own communities’ needs to survive.
+                    <i>(<a href="https://www.urbandictionary.com/define.php?term=Boot%20Licker">Urban Dictionary</a>)</i>
+                </p>
+            </figcaption>
+        </figure>
+        <p>
+            Every day, new videos of indefensable acts of police brutality surface on twitter.
+            Inevitably, bootlickers reply, defending the police and blaming the victim for being assaulted.
+        </p>
+        <p>
+            If you see a bootlicker, reply to their tweet with "<a href="https://twitter.com/@lickerbot">@lickerbot</a>".
+            @lickerbot will call them out, keep track of their bootlicks, and, <i>most importantly</i>,
+            direct other twitter users to resources for donating to organizations fighting police brutality.
+            <%# TODO: add example of a @lickerbot reply. %>
+        </p>
+        <p>
+            So far, @lickerbot has been notified of <%= totalLicks %> bootlicks. In response, people have pledged
+            to donate <span class="money">$<%= totalPledged %></span> to organizations fighting police
+            brutality. That's <span class="money">$<%= truncateFloat(pledgedPerLick) %></span> per lick!
+        </p>
+        <ul class="resources">
+            <%= for (_, link) in donationLinks { %>
+                <li><a href="<%= link.URL %>"><%= link.Name %></a></li>
+            <% } %>
+        </ul>
     </div>
-    <div class="table-responsive">
-      <table class="table table-striped">
-        <thead>
-          <tr text-align="left">
-            <th class="centered">METHOD</th>
-            <th>PATH</th>
-            <th>NAME</th>
-            <th>HANDLER</th>
-          </tr>
-        </thead>
-        <tbody>
-
-          <%= for (r) in routes { %>
-            <tr>
-              <td class="centered">
-                <%= r.Method %>
-              </td>
-              <td>
-                <%= if (r.Method != "GET" || r.Path ~= "{") {
-                  return r.Path
-                } else {
-                  return linkTo(r.Path, {body: r.Path})
-                } %>
-              </td>
-              <td>
-                <%= r.PathName %>
-              </td>
-              <td><code><%= r.HandlerName %></code></td>
-            </tr>
-          <% } %>
-
-        </tbody>
-      </table>
-    </div>
-  </div>
-</div>
-<div class="foot"> <span> Powered by <a href="http://gobuffalo.io/">gobuffalo.io</a></span> </div>
+</main>
+<footer>
+    <hr >
+    <p><i>
+        If you know of an organization that could use software/web support, I'm available to volunteer.
+        Reach out to me via <a href="mailto:zach.the.hammer@gmail.com">email</a> or <a href="https://twitter.com/zhammer_">twitter</a>.
+    </i></p>
+</footer>

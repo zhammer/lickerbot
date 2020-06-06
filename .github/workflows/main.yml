@@ -1,0 +1,59 @@
+name: CI
+
+on: [push]
+
+jobs:
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5432:5432
+        options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
+
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-go@v2
+        with:
+          go-version: ^1.14
+      - uses: actions/setup-node@v2-beta
+        with:
+          node-version: "12"
+      - name: install buffalo
+        run: wget https://github.com/gobuffalo/buffalo/releases/download/v0.16.9/buffalo_0.16.9_Linux_x86_64.tar.gz && tar -xvzf buffalo_0.16.9_Linux_x86_64.tar.gz && sudo mv buffalo /usr/local/bin/buffalo
+
+      # dependency cache stuff
+      - name: Get yarn cache directory path
+        id: yarn-cache-dir-path
+        run: echo "::set-output name=dir::$(yarn cache dir)"
+      - name: cache (yarn)
+        uses: actions/cache@v2
+        with:
+          path: ${{ steps.yarn-cache-dir-path.outputs.dir }}
+          key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-yarn-
+      - uses: actions/cache@v2
+        name: cache (go)
+        with:
+          path: ~/go/pkg/mod
+          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-go-
+
+      - run: yarn
+      - run: buffalo plugins install
+      - run: buffalo build
+      - run: ./bin/lickerbot db create -e test && ./bin/lickerbot db migrate -e test
+      - uses: cypress-io/github-action@v1
+        with:
+          # was having issues with relative path
+          start: "/home/runner/work/lickerbot/lickerbot/bin/lickerbot"
+          wait-on: "http://127.0.0.1:3000"
+        env:
+          GO_ENV: "test"

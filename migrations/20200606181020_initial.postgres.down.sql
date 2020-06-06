@@ -1,0 +1,3 @@
+DELETE TABLE IF EXISTS pledged_donations;
+DELETE TABLE IF EXISTS licks;
+DELETE TABLE IF EXISTS bootlickers;
