@@ -55,5 +55,8 @@ jobs:
           # was having issues with relative path
           start: "/home/runner/work/lickerbot/lickerbot/bin/lickerbot"
           wait-on: "http://127.0.0.1:3000"
+          record: true
         env:
           GO_ENV: "test"
+          CYPRESS_RECORD_KEY: ${{ secrets.CYPRESS_RECORD_KEY }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
