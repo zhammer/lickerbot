@@ -5,16 +5,18 @@ import (
 	"net/http"
 
 	"github.com/gobuffalo/buffalo"
+	"github.com/gobuffalo/pop/v5"
 )
 
 // HomeHandler is a default handler to serve up
 // a home page.
 func HomeHandler(c buffalo.Context) error {
+	tx := c.Value("tx").(*pop.Connection)
 	totalLicks := 0
-	totalLicks, _ = models.DB.Count(&models.Lick{})
+	totalLicks, _ = tx.Count(&models.Lick{})
 
 	totalPledged := 0
-	models.DB.RawQuery("SELECT SUM(amount) FROM pledged_donations").First(&totalPledged)
+	tx.RawQuery("SELECT SUM(amount) FROM pledged_donations").First(&totalPledged)
 
 	pledgedPerLick := 0.0
 	if totalLicks > 0 {
