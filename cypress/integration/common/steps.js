@@ -54,3 +54,22 @@ Then(`I see the text {string}`, (text) => {
 Then(`I see {int} embedded tweets`, (numberOfTweets) => {
   cy.get("twitter-widget").should("have.length", numberOfTweets);
 });
+
+Then(`the meta tag {string} {} {string}`, (tag, assertion, content) => {
+  cy.get(`meta[name="${tag}"]`)
+    .should("have.attr", "content")
+    // contains -> contain, equals -> equal
+    .should(assertion.slice(0, -1), content);
+});
+
+Then(`the meta tag {string} contains a resource that exists`, (tag) => {
+  cy.get(`meta[name="${tag}"]`)
+    .should("have.attr", "content")
+    .then((content) => {
+      cy.request(content);
+    });
+});
+
+Then(`the title is {string}`, (text) => {
+  cy.get("title").should("have.text", text);
+});

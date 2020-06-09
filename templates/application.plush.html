@@ -1,25 +1,53 @@
+<%#
+    This seems to be a way to set default values used by the layout
+    that a child template can override. If a child template wants to
+    override the "title" variable, it would do:
+
+    ```
+    \<% contentFor("title") { %\>A different title\<% } %\>
+    ```
+
+    If there is no `contentFor` block, the default value provided by
+    the layout (e.g. `{ return "Lickerbot" }`) will be used.
+%>
+<%
+    let title = contentOf("title") { return "Lickerbot" };
+    let description = contentOf("description") { return "Raise money for organizations fighting police brutality by calling out bootlickers." };
+%>
+
 <!DOCTYPE html>
 <html>
   <head>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta charset="utf-8">
-    <%= contentOf("title") {%>
-        <title>Lickerbot</title>
-    <% } %>
+    <title><%= title %></title>
     <%= stylesheetTag("application.css") %>
     <meta name="csrf-param" content="authenticity_token" />
     <meta name="csrf-token" content="<%= authenticity_token %>" />
     <link rel="icon" href="<%= assetPath("images/favicon.ico") %>">
     <link href="https://fonts.googleapis.com/css2?family=Open+Sans&family=Roboto:wght@500&display=swap" rel="stylesheet">
 
-    <!-- for twitter -->
+    <!-- social metadata -->
+    <!-- og tags -->
+    <meta name="og:image" content="<%= assetPath("images/og-image.jpg") %>" />
+    <meta name="og:type" content="website" />
+    <meta name="og:title" content="<%= title %>" />
+    <meta name="og:url" content="https://lickerbot.com<%= url.Path %>" />
+    <meta name="og:description" content="<%= description %>" />
+
+    <!-- twitter https://developer.twitter.com/en/docs/tweets/optimize-with-cards/guides/getting-started -->
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:site" content="@lickerbot" />
+    <meta name="twitter:creator" content="@zhammer_" />
+
+    <!-- for twitter embeds https://developer.twitter.com/en/docs/twitter-for-websites/webpage-properties/overview -->
     <meta name="twitter:widgets:theme" content="dark">
     <body>
 
   </head>
     <nav>
         <ul>
-            <li><a href="/"><img src="/assets/images/logo.svg" class="logo"><span> </span> Lickerbot</a></li>
+            <li><a href="/"><img src="<%= assetPath("images/logo.svg") %>" class="logo"><span> </span> Lickerbot</a></li>
         </ul>
     </nav>
     <div class="page">

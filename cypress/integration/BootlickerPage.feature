@@ -38,3 +38,9 @@ Feature: Bootlicker Page
 
         When I refresh the page
         Then I see the text "people have donated $60"
+
+    Scenario: I am a webcrawler
+        When I visit "/@MarcosDarkos"
+        Then the title is "Lickerbot - MarcosDarkos"
+        And the meta tag "og:title" equals "Lickerbot - MarcosDarkos"
+        And the meta tag "og:url" equals "https://lickerbot.com/@MarcosDarkos/"

@@ -126,6 +126,7 @@ func templateGlobals(next buffalo.Handler) buffalo.Handler {
 			},
 		})
 		c.Set("truncateFloat", truncateFloat)
+		c.Set("url", c.Request().URL)
 		return next(c)
 	}
 }
