@@ -56,14 +56,14 @@ Then(`I see {int} embedded tweets`, (numberOfTweets) => {
 });
 
 Then(`the meta tag {string} {} {string}`, (tag, assertion, content) => {
-  cy.get(`meta[name="${tag}"]`)
+  cy.get(`meta[${metaAttr(tag)}="${tag}"]`)
     .should("have.attr", "content")
     // contains -> contain, equals -> equal
     .should(assertion.slice(0, -1), content);
 });
 
 Then(`the meta tag {string} contains a resource that exists`, (tag) => {
-  cy.get(`meta[name="${tag}"]`)
+  cy.get(`meta[${metaAttr(tag)}="${tag}"]`)
     .should("have.attr", "content")
     .then((content) => {
       cy.request(content);
@@ -73,3 +73,12 @@ Then(`the meta tag {string} contains a resource that exists`, (tag) => {
 Then(`the title is {string}`, (text) => {
   cy.get("title").should("have.text", text);
 });
+
+// <meta ~name~="twitter:card" content="summary" />
+// <meta ~property~="og:type" content="website" />
+function metaAttr(name) {
+  if (name.startsWith("twitter:")) {
+    return "name";
+  }
+  return "property";
+}
