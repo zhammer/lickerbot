@@ -33,7 +33,7 @@ func (t *TwitterClient) TweetReply(input *TweetReplyInput) error {
 	body.Set("status", input.Status)
 	body.Set("in_reply_to_status_id", strconv.FormatInt(input.InReplyToStatusID, 10))
 
-	resp, err := t.httpClient.PostForm(t.baseURL+"/status/update.json", body)
+	resp, err := t.httpClient.PostForm(t.baseURL+"/statuses/update.json", body)
 	if err != nil {
 		return err
 	}

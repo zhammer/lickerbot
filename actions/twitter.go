@@ -181,19 +181,22 @@ func ingestTweet(twitterClient *TwitterClient, tweet *tweet) error {
 			return err
 		}
 
-		// it's okay if the error is a unique violation error. that just
-		// means we've already created this lick in the db.
-		lick := &models.Lick{
-			TweetID:      tweet.InReplyToStatusID,
-			TweetText:    tweet.Text,
-			BootlickerID: bootlicker.ID,
-		}
-		if err := tx.Create(lick); err != nil && !models.UniqueViolationErr(err) {
-			return err
-		}
-
-		// bootlicker model may have new data from the possible new lick
-		if err := tx.Eager().Reload(bootlicker); err != nil {
+		err = tx.Where("tweet_id = ?", tweet.InReplyToStatusID).First(&models.Lick{})
+		switch errors.Cause(err) {
+		case nil:
+		case sql.ErrNoRows:
+			lick := &models.Lick{
+				TweetID:      tweet.InReplyToStatusID,
+				TweetText:    tweet.Text,
+				BootlickerID: bootlicker.ID,
+			}
+			if err := tx.Create(lick); err != nil {
+				return err
+			}
+			if err := tx.Eager().Reload(bootlicker); err != nil {
+				return err
+			}
+		default:
 			return err
 		}
 
@@ -206,7 +209,7 @@ func ingestTweet(twitterClient *TwitterClient, tweet *tweet) error {
 	reply := buildReply(tweet, bootlicker)
 	log.Infof("sending reply to twitter: %+v", reply)
 	if err := twitterClient.TweetReply(reply); err != nil {
-		 return err
+		return err
 	}
 
 	return nil

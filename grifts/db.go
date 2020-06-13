@@ -18,6 +18,7 @@ var _ = grift.Namespace("db", func() {
 			}
 
 			// bootlicker 1
+			// could maybe use tx.Eager().Create() here to create nested models in one statement
 			bootlicker1 := &models.Bootlicker{
 				TwitterUserID: 929784070086672384,
 				TwitterHandle: "MarcosDarkos",

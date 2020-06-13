@@ -219,7 +219,7 @@ func (as *ActionSuite) Test_Twitter_Webhook_SomeActionableTweets() {
 	tweetRequests := receiveTwitterRequests(twitterRequests, 2, 5*time.Second)
 	as.Len(tweetRequests, 2)
 	for _, request := range tweetRequests {
-		as.Equal("/status/update.json", request.URL.Path)
+		as.Equal("/statuses/update.json", request.URL.Path)
 		as.Equal("post", strings.ToLower(request.Method))
 	}
 
@@ -249,6 +249,52 @@ func (as *ActionSuite) Test_Twitter_Webhook_SomeActionableTweets() {
 		as.Less(len(requestBody["status"][0]), 240)
 	}
 
+}
+
+// Make sure we retry tweet requests on failures
+func (as *ActionSuite) Test_Twitter_Webhook_Retries() {
+	twitterRequests := make(chan *http.Request)
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		r.ParseForm()
+		twitterRequests <- r
+		w.WriteHeader(http.StatusServiceUnavailable)
+	}))
+	defer server.Close()
+	envy.Set("TWITTER_BASE_URL", server.URL)
+	app = nil
+	as.App = App()
+
+	eventBody := `{
+		"for_user_id": "1269307350520868866",
+		"tweet_create_events": [
+			{
+				"id": 6,
+				"in_reply_to_status_id": 8888,
+				"in_reply_to_user_id": 6666,
+				"in_reply_to_screen_name": "sputnik",
+				"text": "@lickerbot check this out",
+				"user": {
+					"screen_name": "someone"
+				},
+				"entities": {
+					"user_mentions": [
+						{
+							"id": 1269307350520868866
+						}
+					]
+				}
+			}
+		]
+	}`
+
+	res := rawRequest(as, "POST", eventBody)
+	var responseBody map[string][]int64
+	json.Unmarshal(res.Body.Bytes(), &responseBody)
+	as.Equal(map[string][]int64{"ingested_tweet_ids": {6}}, responseBody)
+
+	// verify tweet sent 3 times (3 retries)
+	tweetRequests := receiveTwitterRequests(twitterRequests, 3, 5*time.Second)
+	as.Len(tweetRequests, 3)
 }
 
 // was having a ton of trouble sending json strings as requests
