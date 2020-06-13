@@ -1,7 +1,9 @@
 package actions
 
 import (
+	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"net/http"
 	"net/url"
 	"strconv"
@@ -38,6 +40,64 @@ func (t *TwitterClient) TweetReply(input *TweetReplyInput) error {
 
 	if resp.StatusCode != http.StatusOK {
 		return fmt.Errorf("Received non-200 status code from twitter: %d", resp.StatusCode)
+	}
+
+	return nil
+}
+
+// RegisterWebhook registers our twitter webhook.
+func (t *TwitterClient) RegisterWebhook() (string, error) {
+	body := url.Values{}
+	// Has to be "www." due to root -> www. redirect. Otherwise twitter API gets a
+	// 301 and CRC fails.
+	body.Set("url", "https://www.lickerbot.com/webhook/twitter")
+
+	resp, err := t.httpClient.PostForm(t.baseURL+"/account_activity/all/production/webhooks.json", body)
+	if err != nil {
+		return "", err
+	}
+	if resp.StatusCode != http.StatusOK {
+		body, _ := ioutil.ReadAll(resp.Body)
+		return "", fmt.Errorf("Register webhook request returned status %d. Response: %s", resp.StatusCode, string(body))
+	}
+
+	var responseBody map[string]interface{}
+	if err := json.NewDecoder(resp.Body).Decode(&responseBody); err != nil {
+		return "", fmt.Errorf("Error decoding response body: %v", err)
+	}
+
+	webhookID := responseBody["id"].(string)
+	return webhookID, nil
+}
+
+func (t *TwitterClient) UnregisterWebhook(webhookID string) error {
+	req, err := http.NewRequest("DELETE", t.baseURL+"/account_activity/all/production/webhooks/"+webhookID+".json", nil)
+	if err != nil {
+		return err
+	}
+	resp, err := t.httpClient.Do(req)
+	if err != nil {
+		return err
+	}
+
+	if resp.StatusCode != http.StatusNoContent {
+		body, _ := ioutil.ReadAll(resp.Body)
+		return fmt.Errorf("Register webhook request returned status %d. Response: %s", resp.StatusCode, string(body))
+	}
+
+	return nil
+}
+
+// https://developer.twitter.com/en/docs/accounts-and-users/subscribe-account-activity/api-reference/aaa-premium#post-account-activity-all-env-name-subscriptions
+func (t *TwitterClient) SubscribeToAccountActivity() error {
+	resp, err := t.httpClient.PostForm(t.baseURL+"/account_activity/all/production/subscriptions.json", url.Values{})
+	if err != nil {
+		return err
+	}
+
+	if resp.StatusCode != http.StatusNoContent {
+		body, _ := ioutil.ReadAll(resp.Body)
+		return fmt.Errorf("Register webhook request returned status %d. Response: %s", resp.StatusCode, string(body))
 	}
 
 	return nil
