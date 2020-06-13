@@ -24,6 +24,23 @@ func (b Bootlicker) String() string {
 	return string(jb)
 }
 
+func (b Bootlicker) TotalPledged() int {
+	total := 0
+	for _, pledgeDonation := range b.PledgedDonations {
+		total += pledgeDonation.Amount
+	}
+	return total
+}
+
+func (b Bootlicker) PledgedPerLick() float64 {
+	// avoid divide by zero error
+	if len(b.Licks) == 0 {
+		return 0.0
+	}
+
+	return float64(b.TotalPledged()) / float64(len(b.Licks))
+}
+
 // Bootlickers is not required by pop and may be deleted
 type Bootlickers []Bootlicker
 

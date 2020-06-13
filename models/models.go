@@ -20,5 +20,5 @@ func init() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	pop.Debug = env == "development"
+	pop.Debug = env == "development" || env == "test"
 }

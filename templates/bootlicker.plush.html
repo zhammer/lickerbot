@@ -1,5 +1,10 @@
 <% contentFor("title") {%>Lickerbot - <%= bootlicker.TwitterHandle %><% } %>
 
+<%
+    let totalPledged = bootlicker.TotalPledged();
+    let pledgedPerLick = bootlicker.PledgedPerLick();
+%>
+
 <header>
     <div class="header">
     <h1>@<%= bootlicker.TwitterHandle %></h1>

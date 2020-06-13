@@ -49,8 +49,10 @@ jobs:
       - run: yarn
       - run: buffalo plugins install
       - run: buffalo build
-      - run: ./bin/lickerbot db create -e test && ./bin/lickerbot db migrate -e test
-      - uses: cypress-io/github-action@v1
+      - name: buffalo tests
+        run: ./bin/lickerbot test
+      - name: cypress tests
+        uses: cypress-io/github-action@v1
         with:
           # was having issues with relative path
           start: "/home/runner/work/lickerbot/lickerbot/bin/lickerbot"

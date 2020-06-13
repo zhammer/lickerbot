@@ -61,6 +61,8 @@ func App() *buffalo.App {
 		// Setup and use translations:
 		app.Use(translations())
 
+		app.Use(twitterMw())
+
 		app.Use(templateGlobals)
 
 		app.GET("/", HomeHandler)
@@ -68,6 +70,10 @@ func App() *buffalo.App {
 		app.GET("/@{twitterHandle}", BootlickerHandler)
 
 		app.POST("/{bootlickerID}/donations", DonationPledgeHandler)
+
+		app.GET("/webhook/twitter", TwitterSecurityCheck)
+
+		app.POST("/webhook/twitter", TwitterWebhook)
 
 		app.ServeFiles("/", assetsBox) // serve files from the public directory
 	}
@@ -134,4 +140,15 @@ func templateGlobals(next buffalo.Handler) buffalo.Handler {
 // 10.25897237 -> 10.26
 func truncateFloat(input float64) float64 {
 	return math.Ceil(input*100) / 100
+}
+
+// twitter middleware, attaches a twitter client to request contexts
+func twitterMw() func(buffalo.Handler) buffalo.Handler {
+	client := NewTwitterClient()
+	return func(next buffalo.Handler) buffalo.Handler {
+		return func(c buffalo.Context) error {
+			c.Set("twitterClient", client)
+			return next(c)
+		}
+	}
 }
