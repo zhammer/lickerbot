@@ -56,7 +56,7 @@ func (t *TwitterClient) RegisterWebhook() (string, error) {
 	if err != nil {
 		return "", err
 	}
-	if resp.StatusCode != 200 {
+	if resp.StatusCode != http.StatusOK {
 		body, _ := ioutil.ReadAll(resp.Body)
 		return "", fmt.Errorf("Register webhook request returned status %d. Response: %s", resp.StatusCode, string(body))
 	}
@@ -68,6 +68,39 @@ func (t *TwitterClient) RegisterWebhook() (string, error) {
 
 	webhookID := responseBody["id"].(string)
 	return webhookID, nil
+}
+
+func (t *TwitterClient) UnregisterWebhook(webhookID string) error {
+	req, err := http.NewRequest("DELETE", t.baseURL+"/account_activity/all/production/webhooks/"+webhookID+".json", nil)
+	if err != nil {
+		return err
+	}
+	resp, err := t.httpClient.Do(req)
+	if err != nil {
+		return err
+	}
+
+	if resp.StatusCode != http.StatusNoContent {
+		body, _ := ioutil.ReadAll(resp.Body)
+		return fmt.Errorf("Register webhook request returned status %d. Response: %s", resp.StatusCode, string(body))
+	}
+
+	return nil
+}
+
+// https://developer.twitter.com/en/docs/accounts-and-users/subscribe-account-activity/api-reference/aaa-premium#post-account-activity-all-env-name-subscriptions
+func (t *TwitterClient) SubscribeToAccountActivity() error {
+	resp, err := t.httpClient.PostForm(t.baseURL+"/account_activity/all/production/subscriptions.json", url.Values{})
+	if err != nil {
+		return err
+	}
+
+	if resp.StatusCode != http.StatusNoContent {
+		body, _ := ioutil.ReadAll(resp.Body)
+		return fmt.Errorf("Register webhook request returned status %d. Response: %s", resp.StatusCode, string(body))
+	}
+
+	return nil
 }
 
 func NewTwitterClient() *TwitterClient {
