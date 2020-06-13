@@ -1,7 +1,9 @@
 package actions
 
 import (
+	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"net/http"
 	"net/url"
 	"strconv"
@@ -41,6 +43,31 @@ func (t *TwitterClient) TweetReply(input *TweetReplyInput) error {
 	}
 
 	return nil
+}
+
+// RegisterWebhook registers our twitter webhook.
+func (t *TwitterClient) RegisterWebhook() (string, error) {
+	body := url.Values{}
+	// Has to be "www." due to root -> www. redirect. Otherwise twitter API gets a
+	// 301 and CRC fails.
+	body.Set("url", "https://www.lickerbot.com/webhook/twitter")
+
+	resp, err := t.httpClient.PostForm(t.baseURL+"/account_activity/all/production/webhooks.json", body)
+	if err != nil {
+		return "", err
+	}
+	if resp.StatusCode != 200 {
+		body, _ := ioutil.ReadAll(resp.Body)
+		return "", fmt.Errorf("Register webhook request returned status %d. Response: %s", resp.StatusCode, string(body))
+	}
+
+	var responseBody map[string]interface{}
+	if err := json.NewDecoder(resp.Body).Decode(&responseBody); err != nil {
+		return "", fmt.Errorf("Error decoding response body: %v", err)
+	}
+
+	webhookID := responseBody["id"].(string)
+	return webhookID, nil
 }
 
 func NewTwitterClient() *TwitterClient {
