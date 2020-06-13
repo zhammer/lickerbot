@@ -205,7 +205,9 @@ func ingestTweet(twitterClient *TwitterClient, tweet *tweet) error {
 
 	reply := buildReply(tweet, bootlicker)
 	log.Infof("sending reply to twitter: %+v", reply)
-	twitterClient.TweetReply(reply)
+	if err := twitterClient.TweetReply(reply); err != nil {
+		 return err
+	}
 
 	return nil
 }
