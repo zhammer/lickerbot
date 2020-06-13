@@ -24,7 +24,7 @@ const (
 	lickerbotUserID = 1269307350520868866
 )
 
-var twitterConsumerSecret = envy.Get("TWITTER_CONSUMER_KEY", "")
+var twitterConsumerSecret = envy.Get("TWITTER_CONSUMER_SECRET", "")
 
 var lickReactions = []string{
 	"Liiiiick.",
