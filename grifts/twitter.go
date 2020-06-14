@@ -42,4 +42,16 @@ var _ = grift.Namespace("twitter", func() {
 		fmt.Println("Successfully subscribed to account activity!")
 		return nil
 	})
+
+	grift.Desc("tweet", "Fetch a tweet by its ID")
+	grift.Add("tweet", func(c *grift.Context) error {
+		twitter := actions.NewTwitterClient()
+		tweet, err := twitter.FetchTweet(c.Args[0])
+		if err != nil {
+			return err
+		}
+
+		fmt.Println(tweet)
+		return nil
+	})
 })

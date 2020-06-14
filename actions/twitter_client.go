@@ -88,6 +88,19 @@ func (t *TwitterClient) UnregisterWebhook(webhookID string) error {
 	return nil
 }
 
+func (t *TwitterClient) FetchTweet(tweetID string) (string, error) {
+	resp, err := t.httpClient.Get(t.baseURL + "/statuses/show.json?id=" + tweetID)
+	if err != nil {
+		return "", err
+	}
+	body, _ := ioutil.ReadAll(resp.Body)
+	bodyStr := string(body)
+	if resp.StatusCode != http.StatusOK {
+		return "", fmt.Errorf(bodyStr)
+	}
+	return bodyStr, nil
+}
+
 // https://developer.twitter.com/en/docs/accounts-and-users/subscribe-account-activity/api-reference/aaa-premium#post-account-activity-all-env-name-subscriptions
 func (t *TwitterClient) SubscribeToAccountActivity() error {
 	resp, err := t.httpClient.PostForm(t.baseURL+"/account_activity/all/production/subscriptions.json", url.Values{})

@@ -10,6 +10,9 @@ import (
 	"math"
 	"math/rand"
 	"net/http"
+	"reflect"
+	"runtime"
+	"strings"
 	"time"
 
 	"github.com/pkg/errors"
@@ -57,7 +60,8 @@ type tweet struct {
 // https://developer.twitter.com/en/docs/tweets/data-dictionary/overview/entities-object#mentions
 type userMention struct {
 	// ID of the mentioned user
-	ID int64 `json:"id"`
+	ID         int64  `json:"id"`
+	ScreenName string `json:"screen_name"`
 }
 
 // TwitterCRC implements https://developer.twitter.com/en/docs/accounts-and-users/subscribe-account-activity/guides/securing-webhooks
@@ -136,16 +140,20 @@ func validate(tweet *tweet) error {
 		return errors.New("lickerbot is not a bootlicker")
 	}
 
-	// tweet must mention lickerbot
-	foundLickerbotMention := false
-	for _, userMention := range tweet.Entities.UserMentions {
+	// tweet must mention lickerbot, and the mention of lickerbot *must*
+	// fall immediately after the mention of the user who is being replied to.
+	lickerbotMentionFollowsRepliedToMention := false
+	for i, userMention := range tweet.Entities.UserMentions {
 		if userMention.ID == lickerbotUserID {
-			foundLickerbotMention = true
+			if i > 0 {
+				prevMention := tweet.Entities.UserMentions[i-1]
+				lickerbotMentionFollowsRepliedToMention = strings.ToLower(prevMention.ScreenName) == strings.ToLower(tweet.InReplyToScreenName)
+			}
 			break
 		}
 	}
-	if !foundLickerbotMention {
-		return errors.New("lickerbot not mentioned in tweet")
+	if !lickerbotMentionFollowsRepliedToMention {
+		return errors.New("lickerbot not mentioned in tweet or lickerbot mention doesn't follow replied to mention")
 	}
 
 	return nil
@@ -254,7 +262,8 @@ func lickReaction(tweet *tweet) string {
 
 // retry a function if it errors.
 func retry(fn func() error) error {
-	log := logrus.WithField("fn", fn)
+	// https://stackoverflow.com/a/7053871
+	log := logrus.WithField("fn", runtime.FuncForPC(reflect.ValueOf(fn).Pointer()).Name())
 	var err error
 	for attempt := 1; attempt < 4; attempt++ {
 		if err = fn(); err == nil {

@@ -101,8 +101,9 @@ func (as *ActionSuite) Test_Twitter_Webhook_SomeActionableTweets() {
 	//   2: is a reply but does not mention anyone
 	//   3: is a reply but mentions someone other than @lickerbot
 	//   4: is a reply that mentions @lickerbot but is a reply *to* lickerbot
-	//   5: is an actionable tweet
-	//   6: is an actionable tweet, the bootlicker already exists
+	//   5: is a tweet that mentions @lickerbot but does not include "@lickerbot" in the status
+	//   6: is an actionable tweet
+	//   7: is an actionable tweet, the bootlicker already exists
 	eventBody := `{
 		"for_user_id": "1269307350520868866",
 		"tweet_create_events": [
@@ -175,6 +176,28 @@ func (as *ActionSuite) Test_Twitter_Webhook_SomeActionableTweets() {
 				"in_reply_to_status_id": 1234,
 				"in_reply_to_user_id": 1234,
 				"in_reply_to_screen_name": "weird_guy",
+				"text": "@sputnik @lickerbot haha, this is cool",
+				"user": {
+					"screen_name": "poster"
+				},
+				"entities": {
+					"user_mentions": [
+						{
+							"id": 6666,
+							"screen_name": "sputnik"
+						},
+						{
+							"id": 1269307350520868866,
+							"screen_name": "lickerbot"
+						}
+					]
+				}
+			},
+			{
+				"id": 6,
+				"in_reply_to_status_id": 1234,
+				"in_reply_to_user_id": 1234,
+				"in_reply_to_screen_name": "weird_guy",
 				"text": "@lickerbot",
 				"user": {
 					"screen_name": "poster"
@@ -182,13 +205,18 @@ func (as *ActionSuite) Test_Twitter_Webhook_SomeActionableTweets() {
 				"entities": {
 					"user_mentions": [
 						{
-							"id": 1269307350520868866
+							"id": 1234,
+							"screen_name": "weird_guy"
+						},
+						{
+							"id": 1269307350520868866,
+							"screen_name": "lickerbot"
 						}
 					]
 				}
 			},
 			{
-				"id": 6,
+				"id": 7,
 				"in_reply_to_status_id": 8888,
 				"in_reply_to_user_id": 6666,
 				"in_reply_to_screen_name": "sputnik",
@@ -199,7 +227,12 @@ func (as *ActionSuite) Test_Twitter_Webhook_SomeActionableTweets() {
 				"entities": {
 					"user_mentions": [
 						{
-							"id": 1269307350520868866
+							"id": 6666,
+							"screen_name": "sputnik"
+						},
+						{
+							"id": 1269307350520868866,
+							"screen_name": "lickerbot"
 						}
 					]
 				}
@@ -213,7 +246,7 @@ func (as *ActionSuite) Test_Twitter_Webhook_SomeActionableTweets() {
 
 	var responseBody map[string][]int64
 	json.Unmarshal(res.Body.Bytes(), &responseBody)
-	as.Equal(map[string][]int64{"ingested_tweet_ids": {5, 6}}, responseBody)
+	as.Equal(map[string][]int64{"ingested_tweet_ids": {6, 7}}, responseBody)
 
 	// verify correct tweets sent to twitter
 	tweetRequests := receiveTwitterRequests(twitterRequests, 2, 5*time.Second)
@@ -234,11 +267,11 @@ func (as *ActionSuite) Test_Twitter_Webhook_SomeActionableTweets() {
 
 	expected := []url.Values{
 		{
-			"in_reply_to_status_id": []string{"5"},
+			"in_reply_to_status_id": []string{"6"},
 			"status":                []string{"@poster Must taste good. weird_guy has licked the boot 1 time. Will you pledge to donate $5 per lick to organizations fighting police brutality? https://lickerbot.com/@weird_guy"},
 		},
 		{
-			"in_reply_to_status_id": []string{"6"},
+			"in_reply_to_status_id": []string{"7"},
 			"status":                []string{"@someone That's one hell of a lick! sputnik has licked the boot 2 times. In response, people have donated $50 to organizations fighting police brutality. That's $25 per lick! https://lickerbot.com/@sputnik"},
 		},
 	}
@@ -279,7 +312,12 @@ func (as *ActionSuite) Test_Twitter_Webhook_Retries() {
 				"entities": {
 					"user_mentions": [
 						{
-							"id": 1269307350520868866
+							"id": 6666,
+							"screen_name": "sputnik"
+						},
+						{
+							"id": 1269307350520868866,
+							"screen_name": "lickerbot"
 						}
 					]
 				}
